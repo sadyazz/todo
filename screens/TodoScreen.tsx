@@ -1,10 +1,13 @@
-import React, { useState } from 'react';
-import { View, StyleSheet } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, StyleSheet, Alert } from 'react-native';
 import TabButtons, { TabButtonType } from '../components/TabButtons';
 import TodoList from '../components/TodoList';
 import { TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AddTodoScreen from './AddTodoScreen';
+import { useDatabase } from '@nozbe/watermelondb/react';
+import { Q } from '@nozbe/watermelondb';
+import { TodoData } from '../types';
 
 export enum TodoTab {
   NotFinished,
@@ -14,19 +17,51 @@ export enum TodoTab {
 const TodosScreen: React.FC = () => {
   const [selectedTab, setSelectedTab] = useState<TodoTab>(TodoTab.NotFinished);
   const [showAddTodo, setShowAddTodo] = useState(false);
+  const [todos, setTodos] = useState<TodoData[]>([]);
+  const database = useDatabase();
 
-  const handleAddTodo = () => {
-    console.log('add todo');
-    setShowAddTodo(false);
-  }
+  const todosQuery = database.get('todos').query(Q.sortBy('created_at', Q.desc));
+  const todosFromDB = todosQuery.observe();
 
-  const sampleTodos = [
-    { id: '1', title: 'Buy groceries', isCompleted: false },
-    { id: '2', title: 'Walk the dog', isCompleted: false },
-    { id: '3', title: 'Finish project', isCompleted: false },
-    { id: '4', title: 'Call mom', isCompleted: true },
-    { id: '5', title: 'Read book', isCompleted: true },
-  ];
+  useEffect(() => {
+    const subscription = todosFromDB.subscribe((todosFromDatabase) => {
+      const todoData: TodoData[] = todosFromDatabase.map((todo: any) => ({
+        id: todo.id,
+        title: todo.title,
+        description: todo.description,
+        isCompleted: todo.isCompleted,
+        dueDate: todo.dueDate,
+        priority: todo.priority,
+        categoryId: todo.categoryId,
+        createdAt: todo.createdAt,
+        updatedAt: todo.updatedAt,
+      }));
+      setTodos(todoData);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleAddTodo = async (todoData: any) => {
+    try {
+      await database.write(async () => {
+        await database.get('todos').create((todo: any) => {
+          todo.title = todoData.title;
+          todo.description = todoData.description || '';
+          todo.isCompleted = false;
+          todo.dueDate = todoData.dueDate;
+          todo.priority = todoData.priority;
+          todo.categoryId = todoData.categoryId;
+          todo.createdAt = new Date();
+          todo.updatedAt = new Date();
+        });
+      });
+      setShowAddTodo(false);
+    } catch (error) {
+      console.error('Error adding todo:', error);
+      Alert.alert('Error', 'Failed to add todo');
+    }
+  };
 
   const buttons: TabButtonType[] = [
     { title: "Not Finished" },
@@ -47,9 +82,9 @@ const TodosScreen: React.FC = () => {
       />
       <View style={styles.content}>
         {selectedTab === TodoTab.NotFinished ? (
-          <TodoList todos={sampleTodos.filter(todo => !todo.isCompleted)} />
+          <TodoList todos={todos.filter(todo => !todo.isCompleted)} />
         ) : (
-          <TodoList todos={sampleTodos.filter(todo => todo.isCompleted)} />
+          <TodoList todos={todos.filter(todo => todo.isCompleted)} />
         )}
       </View>
       <TouchableOpacity
