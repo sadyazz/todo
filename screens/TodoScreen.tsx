@@ -17,6 +17,7 @@ export enum TodoTab {
 const TodosScreen: React.FC = () => {
   const [selectedTab, setSelectedTab] = useState<TodoTab>(TodoTab.NotFinished);
   const [showAddTodo, setShowAddTodo] = useState(false);
+  const [editingTodo, setEditingTodo] = useState<TodoData | undefined>(undefined);
   const [todos, setTodos] = useState<TodoData[]>([]);
   const database = useDatabase();
 
@@ -44,22 +45,80 @@ const TodosScreen: React.FC = () => {
 
   const handleAddTodo = async (todoData: any) => {
     try {
+      console.log('Saving todo:', { editingTodo, todoData });
+      
       await database.write(async () => {
-        await database.get('todos').create((todo: any) => {
-          todo.title = todoData.title;
-          todo.description = todoData.description || '';
-          todo.isCompleted = false;
-          todo.dueDate = todoData.dueDate;
-          todo.priority = todoData.priority;
-          todo.categoryId = todoData.categoryId;
-          todo.createdAt = new Date();
-          todo.updatedAt = new Date();
-        });
+        if (editingTodo) {
+          // Update existing todo
+          console.log('Updating todo with ID:', editingTodo.id);
+          const todo = await database.get('todos').find(editingTodo.id);
+          await todo.update((todoRecord: any) => {
+            todoRecord.title = todoData.title;
+            todoRecord.description = todoData.description || '';
+            todoRecord.dueDate = todoData.dueDate;
+            todoRecord.priority = todoData.priority;
+            todoRecord.categoryId = todoData.categoryId;
+            todoRecord.updatedAt = new Date();
+          });
+          console.log('Todo updated successfully');
+        } else {
+          // Create new todo
+          console.log('Creating new todo');
+          await database.get('todos').create((todo: any) => {
+            todo.title = todoData.title;
+            todo.description = todoData.description || '';
+            todo.isCompleted = false;
+            todo.dueDate = todoData.dueDate;
+            todo.priority = todoData.priority;
+            todo.categoryId = todoData.categoryId;
+            todo.createdAt = new Date();
+            todo.updatedAt = new Date();
+          });
+          console.log('Todo created successfully');
+        }
       });
+      
       setShowAddTodo(false);
+      setEditingTodo(undefined);
+      // Force refresh after save
+      setTimeout(() => refreshTodos(), 100);
     } catch (error) {
-      console.error('Error adding todo:', error);
-      Alert.alert('Error', 'Failed to add todo');
+      console.error('Error saving todo:', error);
+      Alert.alert('Error', 'Failed to save todo');
+    }
+  };
+
+  const handleTodoPress = (todo: TodoData) => {
+    setEditingTodo(todo);
+    setShowAddTodo(true);
+  };
+
+  const handleBack = () => {
+    setShowAddTodo(false);
+    setEditingTodo(undefined);
+    // Force refresh of todos data
+    refreshTodos();
+  };
+
+  const refreshTodos = async () => {
+    try {
+      // Force a fresh query to refresh the data
+      const freshTodos = await database.get('todos').query(Q.sortBy('created_at', Q.desc)).fetch();
+      const todoData: TodoData[] = freshTodos.map((todo: any) => ({
+        id: todo.id,
+        title: todo.title,
+        description: todo.description,
+        isCompleted: todo.isCompleted,
+        dueDate: todo.dueDate,
+        priority: todo.priority,
+        categoryId: todo.categoryId,
+        createdAt: todo.createdAt,
+        updatedAt: todo.updatedAt,
+      }));
+      setTodos(todoData);
+      console.log('Todos refreshed:', todoData.length);
+    } catch (error) {
+      console.error('Error refreshing todos:', error);
     }
   };
 
@@ -69,8 +128,11 @@ const TodosScreen: React.FC = () => {
   ];
 
   if(showAddTodo){
-    return <AddTodoScreen onBack={()=>setShowAddTodo(false)}
-    onSave={handleAddTodo} />
+    return <AddTodoScreen 
+      onBack={handleBack}
+      onSave={handleAddTodo}
+      editTodo={editingTodo}
+    />
   }
 
   return (
@@ -82,9 +144,15 @@ const TodosScreen: React.FC = () => {
       />
       <View style={styles.content}>
         {selectedTab === TodoTab.NotFinished ? (
-          <TodoList todos={todos.filter(todo => !todo.isCompleted)} />
+          <TodoList 
+            todos={todos.filter(todo => !todo.isCompleted)} 
+            onTodoPress={handleTodoPress}
+          />
         ) : (
-          <TodoList todos={todos.filter(todo => todo.isCompleted)} />
+          <TodoList 
+            todos={todos.filter(todo => todo.isCompleted)} 
+            onTodoPress={handleTodoPress}
+          />
         )}
       </View>
       <TouchableOpacity

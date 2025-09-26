@@ -1,26 +1,29 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, SafeAreaView, ScrollView, Alert } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, SafeAreaView, ScrollView, Alert, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useDatabase } from '@nozbe/watermelondb/react';
 import { Q } from '@nozbe/watermelondb';
-import { CategoryData, CreateTodoData, Priority, PriorityOption, CategoryColor } from '../types';
+import { CategoryData, CreateTodoData, TodoData, Priority, PriorityOption, CategoryColor } from '../types';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 interface AddTodoScreenProps {
   onBack: () => void;
   onSave: (todo: CreateTodoData) => void;
+  editTodo?: TodoData;
 }
 
-const AddTodoScreen: React.FC<AddTodoScreenProps> = ({ onBack, onSave }) => {
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [dueDate, setDueDate] = useState<Date | undefined>();
-  const [priority, setPriority] = useState<Priority>('medium');
-  const [categoryId, setCategoryId] = useState('default');
+const AddTodoScreen: React.FC<AddTodoScreenProps> = ({ onBack, onSave, editTodo }) => {
+  const [title, setTitle] = useState(editTodo?.title || '');
+  const [description, setDescription] = useState(editTodo?.description || '');
+  const [dueDate, setDueDate] = useState<Date | undefined>(editTodo?.dueDate);
+  const [priority, setPriority] = useState<Priority>(editTodo?.priority || 'medium');
+  const [categoryId, setCategoryId] = useState(editTodo?.categoryId || 'default');
   const [showAddCategory, setShowAddCategory] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
   const [newCategoryColor, setNewCategoryColor] = useState<CategoryColor>('#c333cc');
   const [categoryNameError, setCategoryNameError] = useState('');
   const [titleError, setTitleError] = useState('');
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const database = useDatabase();
   
   const categoriesQuery = database.get('categories').query(Q.sortBy('created_at', Q.desc));
@@ -119,13 +122,24 @@ const AddTodoScreen: React.FC<AddTodoScreenProps> = ({ onBack, onSave }) => {
     });
   };
 
+  const handleDateChange = (_event: any, selectedDate?: Date) => {
+    setShowDatePicker(Platform.OS === 'ios');
+    if (selectedDate) {
+      setDueDate(selectedDate);
+    }
+  };
+
+  const clearDate = () => {
+    setDueDate(undefined);
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={onBack} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="#c333cc" />
         </TouchableOpacity>
-        <Text style={styles.title}>Add New Todo</Text>
+        <Text style={styles.title}>{editTodo ? 'Edit Todo' : 'Add New Todo'}</Text>
         <TouchableOpacity onPress={handleSave} style={styles.saveButton}>
           <Text style={styles.saveText}>Save</Text>
         </TouchableOpacity>
@@ -164,12 +178,55 @@ const AddTodoScreen: React.FC<AddTodoScreenProps> = ({ onBack, onSave }) => {
 
         <View style={styles.inputContainer}>
           <Text style={styles.label}>Due Date</Text>
-          <TouchableOpacity style={styles.dateButton}>
-            <Ionicons name="calendar-outline" size={20} color="#666" />
-            <Text style={styles.dateText}>
-              {dueDate ? formatDate(dueDate) : 'Select date (optional)'}
-            </Text>
-          </TouchableOpacity>
+          <View style={styles.dateContainer}>
+            <TouchableOpacity 
+              style={styles.dateButton}
+              onPress={() => {
+                console.log('Date button pressed, showDatePicker:', showDatePicker);
+                setShowDatePicker(true);
+              }}
+            >
+              <Ionicons name="calendar-outline" size={20} color="#666" />
+              <Text style={styles.dateText}>
+                {dueDate ? formatDate(dueDate) : 'Select date (optional)'}
+              </Text>
+            </TouchableOpacity>
+            {dueDate && (
+              <TouchableOpacity 
+                style={styles.clearDateButton}
+                onPress={clearDate}
+              >
+                <Ionicons name="close-circle" size={20} color="#999" />
+              </TouchableOpacity>
+            )}
+          </View>
+          {showDatePicker && (
+            <View style={styles.datePickerContainer}>
+              <DateTimePicker
+                value={dueDate || new Date()}
+                mode="date"
+                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                onChange={handleDateChange}
+                minimumDate={new Date()}
+              />
+              {Platform.OS === 'ios' && (
+                <View style={styles.datePickerActions}>
+                  <TouchableOpacity 
+                    style={styles.datePickerButton}
+                    onPress={() => setShowDatePicker(false)}
+                  >
+                    <Text style={styles.datePickerButtonText}>Cancel</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity 
+                    style={[styles.datePickerButton, styles.datePickerButtonPrimary]}
+                    onPress={() => setShowDatePicker(false)}
+                  >
+                    <Text style={[styles.datePickerButtonText, styles.datePickerButtonTextPrimary]}>Done</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
+          )}
         </View>
 
         <View style={styles.inputContainer}>
@@ -181,7 +238,10 @@ const AddTodoScreen: React.FC<AddTodoScreenProps> = ({ onBack, onSave }) => {
                 style={[
                   styles.priorityButton,
                   priority === p.value && styles.selectedPriority,
-                  { borderColor: p.color }
+                  { 
+                    borderColor: p.color,
+                    borderWidth: priority === p.value ? 2 : 1
+                  }
                 ]}
                 onPress={() => setPriority(p.value as Priority)}
               >
@@ -214,7 +274,10 @@ const AddTodoScreen: React.FC<AddTodoScreenProps> = ({ onBack, onSave }) => {
                     style={[
                       styles.categoryButton,
                       categoryId === category.id && styles.selectedCategory,
-                      { borderColor: category.color }
+                      { 
+                        borderColor: category.color,
+                        borderWidth: categoryId === category.id ? 2 : 1
+                      }
                     ]}
                     onPress={() => setCategoryId(category.id)}
                   >
@@ -354,7 +417,12 @@ const styles = StyleSheet.create({
     height: 100,
     textAlignVertical: 'top',
   },
+  dateContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   dateButton: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
@@ -367,6 +435,42 @@ const styles = StyleSheet.create({
     marginLeft: 8,
     fontSize: 16,
     color: '#666',
+  },
+  clearDateButton: {
+    marginLeft: 8,
+    padding: 4,
+  },
+  datePickerContainer: {
+    marginTop: 8,
+    backgroundColor: '#f9f9f9',
+    borderRadius: 8,
+    padding: 8,
+  },
+  datePickerActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 8,
+    paddingHorizontal: 16,
+  },
+  datePickerButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    backgroundColor: '#fff',
+  },
+  datePickerButtonPrimary: {
+    backgroundColor: '#c333cc',
+    borderColor: '#c333cc',
+  },
+  datePickerButtonText: {
+    fontSize: 14,
+    color: '#666',
+    fontWeight: '500',
+  },
+  datePickerButtonTextPrimary: {
+    color: '#fff',
   },
   priorityContainer: {
     flexDirection: 'row',
