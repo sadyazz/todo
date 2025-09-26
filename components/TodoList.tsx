@@ -1,13 +1,15 @@
 import React from 'react'
 import { Text, StyleSheet, FlatList, TouchableOpacity, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { TodoData, Priority } from '../types';
 
 interface TodoListProps{
     todos: TodoData[];
     onTodoPress?: (todo: TodoData) => void;
+    onToggleComplete?: (todo: TodoData) => void;
 }
 
-const TodoList = ({todos, onTodoPress}: TodoListProps) => {
+const TodoList = ({todos, onTodoPress, onToggleComplete}: TodoListProps) => {
     const getPriorityColor = (priority: Priority): string => {
         switch (priority) {
             case 'high':
@@ -33,10 +35,30 @@ const TodoList = ({todos, onTodoPress}: TodoListProps) => {
                 onPress={() => onTodoPress?.(item)}
             >
                 <View style={styles.todoContent}>
+                    <TouchableOpacity 
+                        style={styles.completeButton}
+                        onPress={() => onToggleComplete?.(item)}
+                    >
+                        <Ionicons 
+                            name={item.isCompleted ? "checkmark-circle" : "ellipse-outline"} 
+                            size={24} 
+                            color={item.isCompleted ? "#4CAF50" : "#ccc"} 
+                        />
+                    </TouchableOpacity>
                     <View style={styles.todoTextContainer}>
-                        <Text style={styles.todoTitle}>{item.title}</Text>
+                        <Text style={[
+                            styles.todoTitle,
+                            item.isCompleted && styles.completedTodoTitle
+                        ]}>
+                            {item.title}
+                        </Text>
                         {item.description && (
-                            <Text style={styles.todoDescription}>{item.description}</Text>
+                            <Text style={[
+                                styles.todoDescription,
+                                item.isCompleted && styles.completedTodoDescription
+                            ]}>
+                                {item.description}
+                            </Text>
                         )}
                     </View>
                     <View style={[styles.priorityIndicator, { backgroundColor: priorityColor }]} />
@@ -71,6 +93,10 @@ const styles = StyleSheet.create({
         alignItems: 'flex-start',
         justifyContent: 'space-between',
     },
+    completeButton: {
+        marginRight: 12,
+        padding: 4,
+    },
     todoTextContainer: {
         flex: 1,
         marginRight: 12,
@@ -90,6 +116,14 @@ const styles = StyleSheet.create({
         height: 12,
         borderRadius: 6,
         marginTop: 2,
+    },
+    completedTodoTitle: {
+        textDecorationLine: 'line-through',
+        color: '#999',
+    },
+    completedTodoDescription: {
+        textDecorationLine: 'line-through',
+        color: '#bbb',
     },
 })
 export default TodoList

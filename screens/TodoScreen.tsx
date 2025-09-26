@@ -100,6 +100,27 @@ const TodosScreen: React.FC = () => {
     refreshTodos();
   };
 
+  const handleToggleComplete = async (todo: TodoData) => {
+    try {
+      console.log('Toggling todo completion:', todo.id, !todo.isCompleted);
+      
+      await database.write(async () => {
+        const todoRecord = await database.get('todos').find(todo.id);
+        await todoRecord.update((todoUpdate: any) => {
+          todoUpdate.isCompleted = !todo.isCompleted;
+          todoUpdate.updatedAt = new Date();
+        });
+      });
+      
+      console.log('Todo completion toggled successfully');
+      // Force refresh after update
+      setTimeout(() => refreshTodos(), 100);
+    } catch (error) {
+      console.error('Error toggling todo completion:', error);
+      Alert.alert('Error', 'Failed to update todo');
+    }
+  };
+
   const refreshTodos = async () => {
     try {
       // Force a fresh query to refresh the data
@@ -147,11 +168,13 @@ const TodosScreen: React.FC = () => {
           <TodoList 
             todos={todos.filter(todo => !todo.isCompleted)} 
             onTodoPress={handleTodoPress}
+            onToggleComplete={handleToggleComplete}
           />
         ) : (
           <TodoList 
             todos={todos.filter(todo => todo.isCompleted)} 
             onTodoPress={handleTodoPress}
+            onToggleComplete={handleToggleComplete}
           />
         )}
       </View>
