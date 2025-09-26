@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import TabButtons, { TabButtonType } from '../components/TabButtons';
 import TodoList from '../components/TodoList';
+import { TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import AddTodoScreen from './AddTodoScreen';
 
 export enum TodoTab {
   NotFinished,
@@ -10,6 +13,12 @@ export enum TodoTab {
 
 const TodosScreen: React.FC = () => {
   const [selectedTab, setSelectedTab] = useState<TodoTab>(TodoTab.NotFinished);
+  const [showAddTodo, setShowAddTodo] = useState(false);
+
+  const handleAddTodo = () => {
+    console.log('add todo');
+    setShowAddTodo(false);
+  }
 
   const sampleTodos = [
     { id: '1', title: 'Buy groceries', isCompleted: false },
@@ -23,6 +32,11 @@ const TodosScreen: React.FC = () => {
     { title: "Not Finished" },
     { title: "Finished" }
   ];
+
+  if(showAddTodo){
+    return <AddTodoScreen onBack={()=>setShowAddTodo(false)}
+    onSave={handleAddTodo} />
+  }
 
   return (
     <View style={styles.container}>
@@ -38,6 +52,12 @@ const TodosScreen: React.FC = () => {
           <TodoList todos={sampleTodos.filter(todo => todo.isCompleted)} />
         )}
       </View>
+      <TouchableOpacity
+      style={styles.fab}
+      onPress={() => setShowAddTodo(true)}
+    >
+      <Ionicons name="add" size={24} color="#fff" />
+    </TouchableOpacity>
     </View>
   );
 };
@@ -50,6 +70,25 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     marginTop: 20,
+  },
+  fab: {
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#c333cc',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
 });
 
