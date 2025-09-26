@@ -1,13 +1,13 @@
-import { SafeAreaView, StyleSheet, Text, useColorScheme, View } from 'react-native';
+import { SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import React, { useState } from 'react';
 import TabButtons, { TabButtonType } from './components/TabButtons';
+import { DatabaseProvider } from './providers/DatabaseProvider';
 
 export enum CustomTab{
     Tab1, Tab2
 }
 
 export default function App() {
-  const colorScheme = useColorScheme();
   const [selectedTab, setSelectedTab] = useState<CustomTab>(CustomTab.Tab1)
 
   const buttons:TabButtonType[]=[
@@ -16,23 +16,24 @@ export default function App() {
 
   ]
   return (
+    <DatabaseProvider>
       <View style={{paddingHorizontal: 15}}>
-     <SafeAreaView>
-
-      <TabButtons
-          buttons={buttons}
-          selectedTab={selectedTab}
-          setSelectedTab={setSelectedTab}
+        <SafeAreaView>
+          <TabButtons
+            buttons={buttons}
+            selectedTab={selectedTab}
+            setSelectedTab={setSelectedTab}
           />
           <View style={localStyles.container}>
-              {selectedTab === CustomTab.Tab1 ? (
-                <Text>tab 1 content</Text>
-              ): (
-                <Text>tab 2 content</Text>
-              )}
+            {selectedTab === CustomTab.Tab1 ? (
+              <Text>tab 1 content</Text>
+            ): (
+              <Text>tab 2 content</Text>
+            )}
           </View>
-              </SafeAreaView>
-          </View>
+        </SafeAreaView>
+      </View>
+    </DatabaseProvider>
   )
 }
 
