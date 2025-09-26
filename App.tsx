@@ -1,8 +1,10 @@
 import { SafeAreaView, StyleSheet, View, Text } from 'react-native';
 import React, { useState } from 'react';
 import { DatabaseProvider } from './providers/DatabaseProvider';
+import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import BottomNavigation from './components/BottomNavigation';
 import TodosScreen from './screens/TodoScreen';
+import SettingsScreen from './screens/SettingsScreen';
 
 export enum MainTab {
   Today,
@@ -10,21 +12,26 @@ export enum MainTab {
   Settings
 }
 
-export default function App() {
+const AppContent: React.FC = () => {
   const [selectedTab, setSelectedTab] = useState<MainTab>(MainTab.Today);
+  const { isDark } = useTheme();
 
   const renderScreen = () => {
     switch (selectedTab) {
       case MainTab.Today:
-        return <View style={styles.placeholder}><Text>Today Screen</Text></View>;
+        return <View style={[styles.placeholder, { backgroundColor: isDark ? '#1a1a1a' : '#fff' }]}>
+          <Text style={{ color: isDark ? '#fff' : '#333' }}>Today Screen</Text>
+        </View>;
       case MainTab.Todos:
         return <TodosScreen />;
       case MainTab.Settings:
-        return <View style={styles.placeholder}><Text>Settings Screen</Text></View>;
+        return <SettingsScreen />;
       default:
         return <TodosScreen />;
     }
   };
+
+  const styles = createStyles(isDark);
 
   return (
     <DatabaseProvider>
@@ -39,12 +46,20 @@ export default function App() {
       </SafeAreaView>
     </DatabaseProvider>
   );
+};
+
+export default function App() {
+  return (
+    <ThemeProvider>
+      <AppContent />
+    </ThemeProvider>
+  );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (isDark: boolean) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: isDark ? '#1a1a1a' : '#fff',
   },
   content: {
     flex: 1,
