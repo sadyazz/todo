@@ -1,5 +1,5 @@
-import {  SafeAreaView, StyleSheet, Text, useColorScheme, View } from 'react-native';
-import React, { useState } from 'react'
+import { SafeAreaView, StyleSheet, Text, useColorScheme, View } from 'react-native';
+import React, { useState } from 'react';
 import TabButtons, { TabButtonType } from './components/TabButtons';
 
 export enum CustomTab{
