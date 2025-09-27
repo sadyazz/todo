@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useDatabase } from '@nozbe/watermelondb/react';
 import { Q } from '@nozbe/watermelondb';
 import { CategoryData, CreateTodoData, TodoData, Priority, PriorityOption, CategoryColor } from '../types';
+import { useTheme } from '../contexts/ThemeContext';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
 interface AddTodoScreenProps {
@@ -13,6 +14,7 @@ interface AddTodoScreenProps {
 }
 
 const AddTodoScreen: React.FC<AddTodoScreenProps> = ({ onBack, onSave, editTodo }) => {
+  const { isDark } = useTheme();
   const [title, setTitle] = useState(editTodo?.title || '');
   const [description, setDescription] = useState(editTodo?.description || '');
   const [dueDate, setDueDate] = useState<Date | undefined>(editTodo?.dueDate);
@@ -133,6 +135,8 @@ const AddTodoScreen: React.FC<AddTodoScreenProps> = ({ onBack, onSave, editTodo 
     setDueDate(undefined);
   };
 
+  const styles = createStyles(isDark);
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -156,7 +160,7 @@ const AddTodoScreen: React.FC<AddTodoScreenProps> = ({ onBack, onSave, editTodo 
             value={title}
             onChangeText={handleTitleChange}
             placeholder="Enter todo title..."
-            placeholderTextColor="#999"
+            placeholderTextColor={isDark ? "#666" : "#999"}
           />
           {titleError ? (
             <Text style={styles.errorText}>{titleError}</Text>
@@ -170,7 +174,7 @@ const AddTodoScreen: React.FC<AddTodoScreenProps> = ({ onBack, onSave, editTodo 
             value={description}
             onChangeText={setDescription}
             placeholder="Enter description..."
-            placeholderTextColor="#999"
+            placeholderTextColor={isDark ? "#666" : "#999"}
             multiline
             numberOfLines={4}
           />
@@ -186,7 +190,7 @@ const AddTodoScreen: React.FC<AddTodoScreenProps> = ({ onBack, onSave, editTodo 
                 setShowDatePicker(true);
               }}
             >
-              <Ionicons name="calendar-outline" size={20} color="#666" />
+              <Ionicons name="calendar-outline" size={20} color={isDark ? "#666" : "#666"} />
               <Text style={styles.dateText}>
                 {dueDate ? formatDate(dueDate) : 'Select date (optional)'}
               </Text>
@@ -196,7 +200,7 @@ const AddTodoScreen: React.FC<AddTodoScreenProps> = ({ onBack, onSave, editTodo 
                 style={styles.clearDateButton}
                 onPress={clearDate}
               >
-                <Ionicons name="close-circle" size={20} color="#999" />
+                <Ionicons name="close-circle" size={20} color={isDark ? "#666" : "#999"} />
               </TouchableOpacity>
             )}
           </View>
@@ -305,7 +309,7 @@ const AddTodoScreen: React.FC<AddTodoScreenProps> = ({ onBack, onSave, editTodo 
               <View style={styles.addCategoryHeader}>
                 <Text style={styles.addCategoryTitle}>New Category</Text>
                 <TouchableOpacity onPress={() => setShowAddCategory(false)}>
-                  <Ionicons name="close" size={20} color="#666" />
+                  <Ionicons name="close" size={20} color={isDark ? "#666" : "#666"} />
                 </TouchableOpacity>
               </View>
               
@@ -317,7 +321,7 @@ const AddTodoScreen: React.FC<AddTodoScreenProps> = ({ onBack, onSave, editTodo 
                 value={newCategoryName}
                 onChangeText={handleCategoryNameChange}
                 placeholder="Category name..."
-                placeholderTextColor="#999"
+                placeholderTextColor={isDark ? "#666" : "#999"}
               />
               {categoryNameError ? (
                 <Text style={styles.errorText}>{categoryNameError}</Text>
@@ -362,10 +366,10 @@ const AddTodoScreen: React.FC<AddTodoScreenProps> = ({ onBack, onSave, editTodo 
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (isDark: boolean) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: isDark ? '#1a1a1a' : '#fff',
   },
   header: {
     flexDirection: 'row',
@@ -374,7 +378,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: isDark ? '#333' : '#e0e0e0',
   },
   backButton: {
     padding: 8,
@@ -382,7 +386,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#333',
+    color: isDark ? '#fff' : '#333',
   },
   saveButton: {
     padding: 8,
@@ -402,16 +406,17 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#333',
+    color: isDark ? '#fff' : '#333',
     marginBottom: 8,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#e0e0e0',
+    borderColor: isDark ? '#444' : '#e0e0e0',
     borderRadius: 8,
     padding: 12,
     fontSize: 16,
-    color: '#333',
+    color: isDark ? '#fff' : '#333',
+    backgroundColor: isDark ? '#2a2a2a' : '#fff',
   },
   textArea: {
     height: 100,
@@ -426,15 +431,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#e0e0e0',
+    borderColor: isDark ? '#444' : '#e0e0e0',
     borderRadius: 8,
     padding: 12,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: isDark ? '#2a2a2a' : '#f9f9f9',
   },
   dateText: {
     marginLeft: 8,
     fontSize: 16,
-    color: '#666',
+    color: isDark ? '#666' : '#666',
   },
   clearDateButton: {
     marginLeft: 8,
@@ -442,7 +447,7 @@ const styles = StyleSheet.create({
   },
   datePickerContainer: {
     marginTop: 8,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: isDark ? '#2a2a2a' : '#f9f9f9',
     borderRadius: 8,
     padding: 8,
   },
@@ -484,10 +489,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 8,
     padding: 12,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: isDark ? '#2a2a2a' : '#f9f9f9',
   },
   selectedPriority: {
-    backgroundColor: '#f0f0f0',
+    backgroundColor: isDark ? '#333' : '#f0f0f0',
   },
   priorityDot: {
     width: 8,
@@ -497,10 +502,10 @@ const styles = StyleSheet.create({
   },
   priorityText: {
     fontSize: 14,
-    color: '#666',
+    color: isDark ? '#666' : '#666',
   },
   selectedPriorityText: {
-    color: '#333',
+    color: isDark ? '#fff' : '#333',
     fontWeight: '600',
   },
   categoryContainer: {
@@ -518,12 +523,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 8,
     padding: 12,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: isDark ? '#2a2a2a' : '#f9f9f9',
     minWidth: 100,
     flexShrink: 0,
   },
   selectedCategory: {
-    backgroundColor: '#f0f0f0',
+    backgroundColor: isDark ? '#333' : '#f0f0f0',
   },
   categoryDot: {
     width: 8,
@@ -533,10 +538,10 @@ const styles = StyleSheet.create({
   },
   categoryText: {
     fontSize: 14,
-    color: '#666',
+    color: isDark ? '#666' : '#666',
   },
   selectedCategoryText: {
-    color: '#333',
+    color: isDark ? '#fff' : '#333',
     fontWeight: '600',
   },
   addCategoryButton: {
@@ -550,7 +555,7 @@ const styles = StyleSheet.create({
     padding: 12,
     marginTop: 8,
     marginHorizontal: -4,
-    backgroundColor: '#fafafa',
+    backgroundColor: isDark ? '#1a1a1a' : '#fafafa',
   },
   addCategoryText: {
     marginLeft: 6,
@@ -560,10 +565,10 @@ const styles = StyleSheet.create({
   },
   addCategorySection: {
     borderWidth: 1,
-    borderColor: '#e0e0e0',
+    borderColor: isDark ? '#444' : '#e0e0e0',
     borderRadius: 8,
     padding: 16,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: isDark ? '#2a2a2a' : '#f9f9f9',
   },
   addCategoryHeader: {
     flexDirection: 'row',
@@ -574,7 +579,7 @@ const styles = StyleSheet.create({
   addCategoryTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
+    color: isDark ? '#fff' : '#333',
   },
   colorPicker: {
     marginVertical: 12,
@@ -582,7 +587,7 @@ const styles = StyleSheet.create({
   colorLabel: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#333',
+    color: isDark ? '#fff' : '#333',
     marginBottom: 8,
   },
   colorOptions: {
@@ -596,11 +601,11 @@ const styles = StyleSheet.create({
     height: 36,
     borderRadius: 18,
     borderWidth: 3,
-    borderColor: '#e0e0e0',
+    borderColor: isDark ? '#444' : '#e0e0e0',
     margin: 2,
   },
   selectedColor: {
-    borderColor: '#333',
+    borderColor: isDark ? '#fff' : '#333',
     borderWidth: 3,
   },
   addCategoryActions: {
@@ -613,12 +618,12 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
+    borderColor: isDark ? '#444' : '#e0e0e0',
     alignItems: 'center',
   },
   cancelText: {
     fontSize: 14,
-    color: '#666',
+    color: isDark ? '#666' : '#666',
     fontWeight: '500',
   },
   createButton: {

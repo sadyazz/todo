@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface BottomNavigationProps {
   selectedTab: number;
@@ -8,11 +9,14 @@ interface BottomNavigationProps {
 }
 
 const BottomNavigation: React.FC<BottomNavigationProps> = ({ selectedTab, onTabPress }) => {
+  const { isDark } = useTheme();
   const tabs = [
     { title: 'Today', icon: 'calendar-outline', selectedIcon: 'calendar' },
     { title: 'Todos', icon: 'list-outline', selectedIcon: 'list' },
     { title: 'Settings', icon: 'settings-outline', selectedIcon: 'settings' },
   ];
+
+  const styles = createStyles(isDark);
 
   return (
     <View style={styles.container}>
@@ -28,7 +32,7 @@ const BottomNavigation: React.FC<BottomNavigationProps> = ({ selectedTab, onTabP
               <Ionicons
                 name={isSelected ? tab.selectedIcon as any : tab.icon as any}
                 size={24}
-                color={isSelected ? '#c333cc' : '#666'}
+                color={isSelected ? '#c333cc' : (isDark ? '#666' : '#666')}
               />
             </View>
             {/* <Text style={[styles.title, isSelected && styles.selectedTitle]}>
@@ -41,12 +45,12 @@ const BottomNavigation: React.FC<BottomNavigationProps> = ({ selectedTab, onTabP
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (isDark: boolean) => StyleSheet.create({
   container: {
     flexDirection: 'row',
-    backgroundColor: '#fff',
+    backgroundColor: isDark ? '#1a1a1a' : '#fff',
     borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
+    borderTopColor: isDark ? '#333' : '#e0e0e0',
     paddingVertical: 12,
     paddingHorizontal: 8,
     // shadowColor: '#000',
@@ -70,7 +74,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 11,
-    color: '#666',
+    color: isDark ? '#666' : '#666',
     fontWeight: '500',
   },
   selectedTitle: {
