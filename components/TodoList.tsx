@@ -2,6 +2,7 @@ import React from 'react'
 import { Text, StyleSheet, FlatList, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { TodoData, Priority } from '../types';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface TodoListProps{
     todos: TodoData[];
@@ -10,6 +11,9 @@ interface TodoListProps{
 }
 
 const TodoList = ({todos, onTodoPress, onToggleComplete}: TodoListProps) => {
+    const { isDark } = useTheme();
+    const styles = createStyles(isDark);
+    
     const getPriorityColor = (priority: Priority): string => {
         switch (priority) {
             case 'high':
@@ -27,44 +31,44 @@ const TodoList = ({todos, onTodoPress, onToggleComplete}: TodoListProps) => {
         const priorityColor = getPriorityColor(item.priority);
         
         return (
-            <TouchableOpacity 
-                style={[
-                    styles.todoItem,
-                    { borderColor: priorityColor, borderWidth: 2 }
-                ]}
-                onPress={() => onTodoPress?.(item)}
-            >
-                <View style={styles.todoContent}>
-                    <TouchableOpacity 
-                        style={styles.completeButton}
-                        onPress={() => onToggleComplete?.(item)}
-                    >
-                        <Ionicons 
-                            name={item.isCompleted ? "checkmark-circle" : "ellipse-outline"} 
-                            size={24} 
-                            color={item.isCompleted ? "#4CAF50" : "#ccc"} 
-                        />
-                    </TouchableOpacity>
-                    <View style={styles.todoTextContainer}>
-                        <Text style={[
-                            styles.todoTitle,
-                            item.isCompleted && styles.completedTodoTitle
-                        ]}>
-                            {item.title}
-                        </Text>
-                        {item.description && (
+                <TouchableOpacity 
+                    style={[
+                        styles.todoItem,
+                        { borderColor: priorityColor, borderWidth: 2 }
+                    ]}
+                    onPress={() => onTodoPress?.(item)}
+                >
+                    <View style={styles.todoContent}>
+                        <TouchableOpacity 
+                            style={styles.completeButton}
+                            onPress={() => onToggleComplete?.(item)}
+                        >
+                            <Ionicons 
+                                name={item.isCompleted ? "checkmark-circle" : "ellipse-outline"} 
+                                size={24} 
+                                color={item.isCompleted ? "#4CAF50" : (isDark ? "#666" : "#ccc")} 
+                            />
+                        </TouchableOpacity>
+                        <View style={styles.todoTextContainer}>
                             <Text style={[
-                                styles.todoDescription,
-                                item.isCompleted && styles.completedTodoDescription
+                                styles.todoTitle,
+                                item.isCompleted && styles.completedTodoTitle
                             ]}>
-                                {item.description}
+                                {item.title}
                             </Text>
-                        )}
+                            {item.description && (
+                                <Text style={[
+                                    styles.todoDescription,
+                                    item.isCompleted && styles.completedTodoDescription
+                                ]}>
+                                    {item.description}
+                                </Text>
+                            )}
+                        </View>
+                        <View style={[styles.priorityIndicator, { backgroundColor: priorityColor }]} />
                     </View>
-                    <View style={[styles.priorityIndicator, { backgroundColor: priorityColor }]} />
-                </View>
-            </TouchableOpacity>
-        )
+                </TouchableOpacity>
+            )
     }
   return (
     <FlatList
@@ -76,13 +80,13 @@ const TodoList = ({todos, onTodoPress, onToggleComplete}: TodoListProps) => {
   )
 }
 
-const styles = StyleSheet.create({
+const createStyles = (isDark: boolean) => StyleSheet.create({
     container: {
         flex: 1,
         padding: 10,
     },
     todoItem: {
-        backgroundColor: '#f5f5f5',
+        backgroundColor: isDark ? '#2a2a2a' : '#f5f5f5',
         padding: 16,
         marginVertical: 4,
         borderRadius: 8,
@@ -104,11 +108,11 @@ const styles = StyleSheet.create({
     todoTitle: {
         fontSize: 16,
         fontWeight: 'bold',
-        color: '#333',
+        color: isDark ? '#fff' : '#333',
     },
     todoDescription: {
         fontSize: 14,
-        color: '#666',
+        color: isDark ? '#666' : '#666',
         marginTop: 4,
     },
     priorityIndicator: {
@@ -119,11 +123,11 @@ const styles = StyleSheet.create({
     },
     completedTodoTitle: {
         textDecorationLine: 'line-through',
-        color: '#999',
+        color: isDark ? '#666' : '#999',
     },
     completedTodoDescription: {
         textDecorationLine: 'line-through',
-        color: '#bbb',
+        color: isDark ? '#555' : '#bbb',
     },
 })
 export default TodoList

@@ -8,6 +8,7 @@ import AddTodoScreen from './AddTodoScreen';
 import { useDatabase } from '@nozbe/watermelondb/react';
 import { Q } from '@nozbe/watermelondb';
 import { TodoData } from '../types';
+import { useTheme } from '../contexts/ThemeContext';
 
 export enum TodoTab {
   NotFinished,
@@ -15,6 +16,7 @@ export enum TodoTab {
 }
 
 const TodosScreen: React.FC = () => {
+  const { isDark } = useTheme();
   const [selectedTab, setSelectedTab] = useState<TodoTab>(TodoTab.NotFinished);
   const [showAddTodo, setShowAddTodo] = useState(false);
   const [editingTodo, setEditingTodo] = useState<TodoData | undefined>(undefined);
@@ -148,6 +150,8 @@ const TodosScreen: React.FC = () => {
     { title: "Finished" }
   ];
 
+  const styles = createStyles(isDark);
+
   if(showAddTodo){
     return <AddTodoScreen 
       onBack={handleBack}
@@ -188,10 +192,11 @@ const TodosScreen: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (isDark: boolean) => StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 15,
+    backgroundColor: isDark ? '#1a1a1a' : '#fff',
   },
   content: {
     flex: 1,

@@ -43,7 +43,7 @@ const CategoriesScreen: React.FC<CategoriesScreenProps> = ({ onBack }) => {
   const handleEditCategory = (category: CategoryData) => {
     setEditingCategory(category);
     setEditName(category.name);
-    setEditColor(category.color);
+    setEditColor(category.color as CategoryColor);
     setShowEditModal(true);
   };
 
@@ -65,7 +65,6 @@ const CategoriesScreen: React.FC<CategoriesScreenProps> = ({ onBack }) => {
         });
       });
 
-      // Force refresh after update
       setTimeout(() => refreshCategories(), 100);
       
       setShowEditModal(false);
@@ -169,7 +168,6 @@ const CategoriesScreen: React.FC<CategoriesScreenProps> = ({ onBack }) => {
         )}
       </ScrollView>
 
-      {/* Edit Modal */}
       <Modal
         visible={showEditModal}
         transparent={true}
