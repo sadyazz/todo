@@ -3,9 +3,10 @@ import { View, Text, StyleSheet, TextInput, TouchableOpacity, SafeAreaView, Scro
 import { Ionicons } from '@expo/vector-icons';
 import { useDatabase } from '@nozbe/watermelondb/react';
 import { Q } from '@nozbe/watermelondb';
-import { CategoryData, CreateTodoData, TodoData, Priority, PriorityOption, CategoryColor } from '../types';
+import { CategoryData, CreateTodoData, TodoData, Priority, PriorityOption, CategoryColor, ReminderData } from '../types';
 import { useTheme } from '../contexts/ThemeContext';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { NotificationService } from '../services/NotificationService';
 
 interface AddTodoScreenProps {
   onBack: () => void;
@@ -26,6 +27,8 @@ const AddTodoScreen: React.FC<AddTodoScreenProps> = ({ onBack, onSave, editTodo 
   const [categoryNameError, setCategoryNameError] = useState('');
   const [titleError, setTitleError] = useState('');
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [reminderDate, setReminderDate] = useState<Date | undefined>(undefined);
+  const [showReminderPicker, setShowReminderPicker] = useState(false);
   const database = useDatabase();
   
   const categoriesQuery = database.get('categories').query(Q.sortBy('created_at', Q.desc));
@@ -69,7 +72,8 @@ const AddTodoScreen: React.FC<AddTodoScreenProps> = ({ onBack, onSave, editTodo 
       description: description.trim(),
       dueDate,
       priority,
-      categoryId
+      categoryId,
+      reminderDate
     });
     onBack();
   };
@@ -148,6 +152,63 @@ const AddTodoScreen: React.FC<AddTodoScreenProps> = ({ onBack, onSave, editTodo 
   const clearDate = () => {
     setDueDate(undefined);
   };
+
+  const clearReminder = () => {
+    setReminderDate(undefined);
+  };
+
+  const handleReminderChange = (_event: any, selectedDate?: Date) => {
+    setShowReminderPicker(Platform.OS === 'ios');
+    if (selectedDate) {
+      const now = new Date();
+      
+      if (selectedDate < now) {
+        Alert.alert(
+          'Invalid Reminder Time',
+          'Reminder time cannot be set in the past. Please select a future time.',
+          [{ text: 'OK' }]
+        );
+        return;
+      }
+      
+      setReminderDate(selectedDate);
+    }
+  };
+
+  const formatReminderTime = (date: Date) => {
+    return date.toLocaleString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    });
+  };
+
+  const setQuickReminder = (minutes: number) => {
+    const now = new Date();
+    const reminderTime = new Date(now.getTime() + minutes * 60000);
+    setReminderDate(reminderTime);
+  };
+
+  const isQuickReminderSelected = (minutes: number) => {
+    if (!reminderDate) return false;
+    const now = new Date();
+    const expectedTime = new Date(now.getTime() + minutes * 60000);
+
+    const diff = Math.abs(reminderDate.getTime() - expectedTime.getTime());
+    return diff < 60000;
+  };
+
+  const quickReminderOptions = [
+    { label: '5 min', minutes: 5 },
+    { label: '15 min', minutes: 15 },
+    { label: '30 min', minutes: 30 },
+    { label: '1 hour', minutes: 60 },
+    { label: '2 hours', minutes: 120 },
+    { label: '1 day', minutes: 1440 },
+  ];
 
   const styles = createStyles(isDark);
 
@@ -248,6 +309,85 @@ const AddTodoScreen: React.FC<AddTodoScreenProps> = ({ onBack, onSave, editTodo 
               )}
             </View>
           )}
+        </View>
+
+        <View style={styles.inputContainer}>
+          <Text style={styles.label}>Reminder</Text>
+          <View style={styles.dateContainer}>
+            <TouchableOpacity 
+              style={styles.dateButton}
+              onPress={() => setShowReminderPicker(true)}
+            >
+              <Ionicons name="alarm-outline" size={20} color={isDark ? "#666" : "#666"} />
+              <Text style={styles.dateText}>
+                {reminderDate ? formatReminderTime(reminderDate) : 'Set reminder (optional)'}
+              </Text>
+            </TouchableOpacity>
+            {reminderDate && (
+              <TouchableOpacity 
+                style={styles.clearDateButton}
+                onPress={clearReminder}
+              >
+                <Ionicons name="close-circle" size={20} color={isDark ? "#666" : "#999"} />
+              </TouchableOpacity>
+            )}
+          </View>
+          {showReminderPicker && (
+            <View style={styles.datePickerContainer}>
+              <View style={styles.datePickerWrapper}>
+                <DateTimePicker
+                  value={reminderDate || new Date()}
+                  mode="datetime"
+                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                  onChange={handleReminderChange}
+                  textColor={isDark ? '#fff' : '#000'}
+                  themeVariant={isDark ? 'dark' : 'light'}
+                />
+              </View>
+              {Platform.OS === 'ios' && (
+                <View style={styles.datePickerActions}>
+                  <TouchableOpacity 
+                    style={styles.datePickerButton}
+                    onPress={() => setShowReminderPicker(false)}
+                  >
+                    <Text style={styles.datePickerButtonText}>Cancel</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity 
+                    style={[styles.datePickerButton, styles.datePickerButtonPrimary]}
+                    onPress={() => setShowReminderPicker(false)}
+                  >
+                    <Text style={[styles.datePickerButtonText, styles.datePickerButtonTextPrimary]}>Done</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
+          )}
+          
+          <View style={styles.quickActionsContainer}>
+            <Text style={styles.quickActionsLabel}>Quick reminder:</Text>
+            <View style={styles.quickActionsRow}>
+              {quickReminderOptions.map((option) => {
+                const isSelected = isQuickReminderSelected(option.minutes);
+                return (
+                  <TouchableOpacity
+                    key={option.label}
+                    style={[
+                      styles.quickActionButton,
+                      isSelected && styles.quickActionButtonSelected
+                    ]}
+                    onPress={() => setQuickReminder(option.minutes)}
+                  >
+                    <Text style={[
+                      styles.quickActionText,
+                      isSelected && styles.quickActionTextSelected
+                    ]}>
+                      {option.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
         </View>
 
         <View style={styles.inputContainer}>
@@ -473,6 +613,41 @@ const createStyles = (isDark: boolean) => StyleSheet.create({
     borderRadius: 8,
     padding: 8,
     marginBottom: 8,
+  },
+  quickActionsContainer: {
+    marginTop: 12,
+  },
+  quickActionsLabel: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: isDark ? '#ccc' : '#666',
+    marginBottom: 8,
+  },
+  quickActionsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  quickActionButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    backgroundColor: isDark ? '#333' : '#f0f0f0',
+    borderWidth: 1,
+    borderColor: isDark ? '#444' : '#e0e0e0',
+  },
+  quickActionText: {
+    fontSize: 12,
+    color: isDark ? '#fff' : '#333',
+    fontWeight: '500',
+  },
+  quickActionButtonSelected: {
+    backgroundColor: '#c333cc',
+    borderColor: '#c333cc',
+  },
+  quickActionTextSelected: {
+    color: '#fff',
+    fontWeight: '600',
   },
   datePickerActions: {
     flexDirection: 'row',

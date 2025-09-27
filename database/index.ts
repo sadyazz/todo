@@ -11,6 +11,7 @@ const adapter = new SQLiteAdapter({
   onSetUpError: (error) => {
     console.error('Database setup error:', error);
   },
+  dbName: 'todo_app_v4',
 });
 
 export const database = new Database({

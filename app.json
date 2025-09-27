@@ -28,7 +28,14 @@
     },
     "plugins": [
       "@morrowdigital/watermelondb-expo-plugin",
-      "expo-build-properties"
+      "expo-build-properties",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#c333cc"
+        }
+      ]
     ]
   }
 }

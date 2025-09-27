@@ -107,7 +107,7 @@ const CategoriesScreen: React.FC<CategoriesScreenProps> = ({ onBack }) => {
                 await category.destroyPermanently();
               });
               
-              // Force refresh after delete
+
               setTimeout(() => refreshCategories(), 100);
             } catch (error) {
               console.error('Error deleting category:', error);

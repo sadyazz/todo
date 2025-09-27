@@ -14,6 +14,7 @@ export class Todo extends Model {
   @date('due_date') dueDate?: Date;
   @field('priority') priority!: string;
   @field('category_id') categoryId!: string;
+  @date('reminder_date') reminderDate?: Date;
   @date('created_at') createdAt!: Date;
   @date('updated_at') updatedAt!: Date;
 

@@ -9,6 +9,7 @@ import { useDatabase } from '@nozbe/watermelondb/react';
 import { Q } from '@nozbe/watermelondb';
 import { TodoData } from '../types';
 import { useTheme } from '../contexts/ThemeContext';
+import { NotificationService } from '../services/NotificationService';
 
 export enum TodoTab {
   NotFinished,
@@ -36,6 +37,7 @@ const TodosScreen: React.FC = () => {
         dueDate: todo.dueDate,
         priority: todo.priority,
         categoryId: todo.categoryId,
+        reminderDate: todo.reminderDate,
         createdAt: todo.createdAt,
         updatedAt: todo.updatedAt,
       }));
@@ -51,7 +53,6 @@ const TodosScreen: React.FC = () => {
       
       await database.write(async () => {
         if (editingTodo) {
-          // Update existing todo
           console.log('Updating todo with ID:', editingTodo.id);
           const todo = await database.get('todos').find(editingTodo.id);
           await todo.update((todoRecord: any) => {
@@ -60,29 +61,47 @@ const TodosScreen: React.FC = () => {
             todoRecord.dueDate = todoData.dueDate;
             todoRecord.priority = todoData.priority;
             todoRecord.categoryId = todoData.categoryId;
+            todoRecord.reminderDate = todoData.reminderDate;
             todoRecord.updatedAt = new Date();
           });
           console.log('Todo updated successfully');
         } else {
-          // Create new todo
           console.log('Creating new todo');
-          await database.get('todos').create((todo: any) => {
+          const newTodo =           await database.get('todos').create((todo: any) => {
             todo.title = todoData.title;
             todo.description = todoData.description || '';
             todo.isCompleted = false;
             todo.dueDate = todoData.dueDate;
             todo.priority = todoData.priority;
             todo.categoryId = todoData.categoryId;
+            todo.reminderDate = todoData.reminderDate;
             todo.createdAt = new Date();
             todo.updatedAt = new Date();
           });
           console.log('Todo created successfully');
+
+          console.log('Checking reminder:', todoData.reminderDate);
+          if (todoData.reminderDate) {
+            console.log('Scheduling notification for new todo...');
+            const notificationId = await NotificationService.scheduleReminder(
+              newTodo.id,
+              todoData.title,
+              todoData.reminderDate
+            );
+            if (notificationId) {
+              console.log(`Scheduled notification ${notificationId} for todo ${newTodo.id}`);
+            } else {
+              console.log('Failed to schedule notification');
+            }
+          } else {
+            console.log('No reminder date set');
+          }
         }
       });
       
       setShowAddTodo(false);
       setEditingTodo(undefined);
-      // Force refresh after save
+
       setTimeout(() => refreshTodos(), 100);
     } catch (error) {
       console.error('Error saving todo:', error);
@@ -98,7 +117,7 @@ const TodosScreen: React.FC = () => {
   const handleBack = () => {
     setShowAddTodo(false);
     setEditingTodo(undefined);
-    // Force refresh of todos data
+
     refreshTodos();
   };
 
@@ -115,7 +134,7 @@ const TodosScreen: React.FC = () => {
       });
       
       console.log('Todo completion toggled successfully');
-      // Force refresh after update
+
       setTimeout(() => refreshTodos(), 100);
     } catch (error) {
       console.error('Error toggling todo completion:', error);
@@ -125,7 +144,6 @@ const TodosScreen: React.FC = () => {
 
   const refreshTodos = async () => {
     try {
-      // Force a fresh query to refresh the data
       const freshTodos = await database.get('todos').query(Q.sortBy('created_at', Q.desc)).fetch();
       const todoData: TodoData[] = freshTodos.map((todo: any) => ({
         id: todo.id,
@@ -135,12 +153,17 @@ const TodosScreen: React.FC = () => {
         dueDate: todo.dueDate,
         priority: todo.priority,
         categoryId: todo.categoryId,
+        reminderDate: todo.reminderDate,
         createdAt: todo.createdAt,
         updatedAt: todo.updatedAt,
       }));
       setTodos(todoData);
       console.log('Todos refreshed:', todoData.length);
     } catch (error) {
+      if (error instanceof Error && error.message?.includes('not cached')) {
+        console.log('Cache warning (ignored):', error.message);
+        return;
+      }
       console.error('Error refreshing todos:', error);
     }
   };
