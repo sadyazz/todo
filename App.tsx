@@ -9,7 +9,7 @@ import SettingsScreen from './screens/SettingsScreen';
 export enum MainTab {
   Today,
   Todos,
-  Settings
+  Settings,
 }
 
 const AppContent: React.FC = () => {
@@ -19,9 +19,18 @@ const AppContent: React.FC = () => {
   const renderScreen = () => {
     switch (selectedTab) {
       case MainTab.Today:
-        return <View style={[styles.placeholder, { backgroundColor: isDark ? '#1a1a1a' : '#fff' }]}>
-          <Text style={{ color: isDark ? '#fff' : '#333' }}>Today Screen</Text>
-        </View>;
+        return (
+          <View
+            style={[
+              styles.placeholder,
+              { backgroundColor: isDark ? '#1a1a1a' : '#fff' },
+            ]}
+          >
+            <Text style={{ color: isDark ? '#fff' : '#333' }}>
+              Today Screen
+            </Text>
+          </View>
+        );
       case MainTab.Todos:
         return <TodosScreen />;
       case MainTab.Settings:
@@ -36,9 +45,7 @@ const AppContent: React.FC = () => {
   return (
     <DatabaseProvider>
       <SafeAreaView style={styles.container}>
-        <View style={styles.content}>
-          {renderScreen()}
-        </View>
+        <View style={styles.content}>{renderScreen()}</View>
         <BottomNavigation
           selectedTab={selectedTab}
           onTabPress={setSelectedTab}
@@ -56,17 +63,18 @@ export default function App() {
   );
 }
 
-const createStyles = (isDark: boolean) => StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: isDark ? '#1a1a1a' : '#fff',
-  },
-  content: {
-    flex: 1,
-  },
-  placeholder: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-});
+const createStyles = (isDark: boolean) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: isDark ? '#1a1a1a' : '#fff',
+    },
+    content: {
+      flex: 1,
+    },
+    placeholder: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+  });

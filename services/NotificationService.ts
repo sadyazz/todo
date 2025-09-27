@@ -12,21 +12,19 @@ Notifications.setNotificationHandler({
 export class NotificationService {
   static async requestPermissions(): Promise<boolean> {
     try {
-      const { status: existingStatus } = await Notifications.getPermissionsAsync();
+      const { status: existingStatus } =
+        await Notifications.getPermissionsAsync();
       let finalStatus = existingStatus;
-      
+
       if (existingStatus !== 'granted') {
         const { status } = await Notifications.requestPermissionsAsync();
         finalStatus = status;
       }
-      
+
       if (finalStatus !== 'granted') {
-        console.log('Notification permission denied');
         return false;
       }
-      
-      console.log('Notification permission granted:', finalStatus);
-      
+
       if (Platform.OS === 'android') {
         await Notifications.setNotificationChannelAsync('reminders', {
           name: 'Todo Reminders',
@@ -35,7 +33,7 @@ export class NotificationService {
           lightColor: '#c333cc',
         });
       }
-      
+
       return true;
     } catch (error) {
       console.error('Error requesting notification permissions:', error);
@@ -51,7 +49,6 @@ export class NotificationService {
     try {
       const hasPermission = await this.requestPermissions();
       if (!hasPermission) {
-        console.log('No notification permission');
         return null;
       }
 
@@ -67,10 +64,6 @@ export class NotificationService {
         } as any,
       });
 
-      console.log(`Scheduled notification ${notificationId} for ${reminderDate}`);
-      console.log(`Current time: ${new Date()}`);
-      console.log(`Reminder time: ${reminderDate}`);
-      console.log(`Time difference: ${reminderDate.getTime() - new Date().getTime()}ms`);
       return notificationId;
     } catch (error) {
       console.error('Error scheduling notification:', error);
@@ -81,7 +74,6 @@ export class NotificationService {
   static async cancelReminder(notificationId: string): Promise<void> {
     try {
       await Notifications.cancelScheduledNotificationAsync(notificationId);
-      console.log(`Cancelled notification ${notificationId}`);
     } catch (error) {
       console.error('Error cancelling notification:', error);
     }
@@ -90,13 +82,14 @@ export class NotificationService {
   static async cancelAllReminders(): Promise<void> {
     try {
       await Notifications.cancelAllScheduledNotificationsAsync();
-      console.log('Cancelled all notifications');
     } catch (error) {
       console.error('Error cancelling all notifications:', error);
     }
   }
 
-  static async getScheduledNotifications(): Promise<Notifications.NotificationRequest[]> {
+  static async getScheduledNotifications(): Promise<
+    Notifications.NotificationRequest[]
+  > {
     try {
       return await Notifications.getAllScheduledNotificationsAsync();
     } catch (error) {

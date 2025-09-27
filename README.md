@@ -24,6 +24,7 @@ a simple React Native todo application with offline storage and push notificatio
 ## Getting Started
 
 ### Prerequisites
+
 - Node.js (v16 or higher)
 - npm or yarn
 - Expo CLI
@@ -32,12 +33,14 @@ a simple React Native todo application with offline storage and push notificatio
 ### Installation
 
 1. Clone the repository
+
 ```bash
 git clone https://github.com/sadyazz/todo.git
 cd todo
 ```
 
 2. Install dependencies
+
 ```bash
 npm install
 # or
@@ -45,16 +48,19 @@ yarn install
 ```
 
 3. Start the development server
+
 ```bash
 npx expo start
 ```
 
 4. Run on iOS simulator
+
 ```bash
 npx expo run:ios
 ```
 
 5. Run on Android emulator
+
 ```bash
 npx expo run:android
 ```

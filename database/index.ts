@@ -8,7 +8,7 @@ import { schema } from './schema';
 const adapter = new SQLiteAdapter({
   schema,
   jsi: true,
-  onSetUpError: (error) => {
+  onSetUpError: error => {
     console.error('Database setup error:', error);
   },
   dbName: 'todo_app_v4',

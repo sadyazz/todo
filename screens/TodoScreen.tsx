@@ -13,22 +13,26 @@ import { NotificationService } from '../services/NotificationService';
 
 export enum TodoTab {
   NotFinished,
-  Finished
+  Finished,
 }
 
 const TodosScreen: React.FC = () => {
   const { isDark } = useTheme();
   const [selectedTab, setSelectedTab] = useState<TodoTab>(TodoTab.NotFinished);
   const [showAddTodo, setShowAddTodo] = useState(false);
-  const [editingTodo, setEditingTodo] = useState<TodoData | undefined>(undefined);
+  const [editingTodo, setEditingTodo] = useState<TodoData | undefined>(
+    undefined
+  );
   const [todos, setTodos] = useState<TodoData[]>([]);
   const database = useDatabase();
 
-  const todosQuery = database.get('todos').query(Q.sortBy('created_at', Q.desc));
+  const todosQuery = database
+    .get('todos')
+    .query(Q.sortBy('created_at', Q.desc));
   const todosFromDB = todosQuery.observe();
 
   useEffect(() => {
-    const subscription = todosFromDB.subscribe((todosFromDatabase) => {
+    const subscription = todosFromDB.subscribe(todosFromDatabase => {
       const todoData: TodoData[] = todosFromDatabase.map((todo: any) => ({
         id: todo.id,
         title: todo.title,
@@ -50,7 +54,7 @@ const TodosScreen: React.FC = () => {
   const handleAddTodo = async (todoData: any) => {
     try {
       console.log('Saving todo:', { editingTodo, todoData });
-      
+
       await database.write(async () => {
         if (editingTodo) {
           console.log('Updating todo with ID:', editingTodo.id);
@@ -67,7 +71,7 @@ const TodosScreen: React.FC = () => {
           console.log('Todo updated successfully');
         } else {
           console.log('Creating new todo');
-          const newTodo =           await database.get('todos').create((todo: any) => {
+          const newTodo = await database.get('todos').create((todo: any) => {
             todo.title = todoData.title;
             todo.description = todoData.description || '';
             todo.isCompleted = false;
@@ -89,7 +93,9 @@ const TodosScreen: React.FC = () => {
               todoData.reminderDate
             );
             if (notificationId) {
-              console.log(`Scheduled notification ${notificationId} for todo ${newTodo.id}`);
+              console.log(
+                `Scheduled notification ${notificationId} for todo ${newTodo.id}`
+              );
             } else {
               console.log('Failed to schedule notification');
             }
@@ -98,7 +104,7 @@ const TodosScreen: React.FC = () => {
           }
         }
       });
-      
+
       setShowAddTodo(false);
       setEditingTodo(undefined);
 
@@ -124,7 +130,7 @@ const TodosScreen: React.FC = () => {
   const handleToggleComplete = async (todo: TodoData) => {
     try {
       console.log('Toggling todo completion:', todo.id, !todo.isCompleted);
-      
+
       await database.write(async () => {
         const todoRecord = await database.get('todos').find(todo.id);
         await todoRecord.update((todoUpdate: any) => {
@@ -132,7 +138,7 @@ const TodosScreen: React.FC = () => {
           todoUpdate.updatedAt = new Date();
         });
       });
-      
+
       console.log('Todo completion toggled successfully');
 
       setTimeout(() => refreshTodos(), 100);
@@ -144,7 +150,10 @@ const TodosScreen: React.FC = () => {
 
   const refreshTodos = async () => {
     try {
-      const freshTodos = await database.get('todos').query(Q.sortBy('created_at', Q.desc)).fetch();
+      const freshTodos = await database
+        .get('todos')
+        .query(Q.sortBy('created_at', Q.desc))
+        .fetch();
       const todoData: TodoData[] = freshTodos.map((todo: any) => ({
         id: todo.id,
         title: todo.title,
@@ -169,18 +178,20 @@ const TodosScreen: React.FC = () => {
   };
 
   const buttons: TabButtonType[] = [
-    { title: "Not Finished" },
-    { title: "Finished" }
+    { title: 'Not Finished' },
+    { title: 'Finished' },
   ];
 
   const styles = createStyles(isDark);
 
-  if(showAddTodo){
-    return <AddTodoScreen 
-      onBack={handleBack}
-      onSave={handleAddTodo}
-      editTodo={editingTodo}
-    />
+  if (showAddTodo) {
+    return (
+      <AddTodoScreen
+        onBack={handleBack}
+        onSave={handleAddTodo}
+        editTodo={editingTodo}
+      />
+    );
   }
 
   return (
@@ -193,100 +204,100 @@ const TodosScreen: React.FC = () => {
       <View style={styles.content}>
         {selectedTab === TodoTab.NotFinished ? (
           todos.filter(todo => !todo.isCompleted).length > 0 ? (
-            <TodoList 
-              todos={todos.filter(todo => !todo.isCompleted)} 
+            <TodoList
+              todos={todos.filter(todo => !todo.isCompleted)}
               onTodoPress={handleTodoPress}
               onToggleComplete={handleToggleComplete}
             />
           ) : (
             <View style={styles.emptyState}>
-              <Ionicons 
-                name="checkmark-circle-outline" 
-                size={64} 
-                color={isDark ? "#666" : "#999"} 
+              <Ionicons
+                name="checkmark-circle-outline"
+                size={64}
+                color={isDark ? '#666' : '#999'}
               />
               <Text style={styles.emptyText}>No pending todos</Text>
-              <Text style={styles.emptySubtext}>Tap the + button to add your first todo</Text>
+              <Text style={styles.emptySubtext}>
+                Tap the + button to add your first todo
+              </Text>
             </View>
           )
+        ) : todos.filter(todo => todo.isCompleted).length > 0 ? (
+          <TodoList
+            todos={todos.filter(todo => todo.isCompleted)}
+            onTodoPress={handleTodoPress}
+            onToggleComplete={handleToggleComplete}
+          />
         ) : (
-          todos.filter(todo => todo.isCompleted).length > 0 ? (
-            <TodoList 
-              todos={todos.filter(todo => todo.isCompleted)} 
-              onTodoPress={handleTodoPress}
-              onToggleComplete={handleToggleComplete}
+          <View style={styles.emptyState}>
+            <Ionicons
+              name="trophy-outline"
+              size={64}
+              color={isDark ? '#666' : '#999'}
             />
-          ) : (
-            <View style={styles.emptyState}>
-              <Ionicons 
-                name="trophy-outline" 
-                size={64} 
-                color={isDark ? "#666" : "#999"} 
-              />
-              <Text style={styles.emptyText}>No completed todos yet</Text>
-              <Text style={styles.emptySubtext}>Complete some todos to see them here</Text>
-            </View>
-          )
+            <Text style={styles.emptyText}>No completed todos yet</Text>
+            <Text style={styles.emptySubtext}>
+              Complete some todos to see them here
+            </Text>
+          </View>
         )}
       </View>
-      <TouchableOpacity
-      style={styles.fab}
-      onPress={() => setShowAddTodo(true)}
-    >
-      <Ionicons name="add" size={24} color="#fff" />
-    </TouchableOpacity>
+      <TouchableOpacity style={styles.fab} onPress={() => setShowAddTodo(true)}>
+        <Ionicons name="add" size={24} color="#fff" />
+      </TouchableOpacity>
     </View>
   );
 };
 
-const createStyles = (isDark: boolean) => StyleSheet.create({
-  container: {
-    flex: 1,
-    paddingHorizontal: 15,
-    backgroundColor: isDark ? '#1a1a1a' : '#fff',
-  },
-  content: {
-    flex: 1,
-    marginTop: 20,
-  },
-  fab: {
-    position: 'absolute',
-    bottom: 20,
-    right: 20,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: '#c333cc',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
+const createStyles = (isDark: boolean) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      paddingHorizontal: 15,
+      backgroundColor: isDark ? '#1a1a1a' : '#fff',
     },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  emptyState: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 64,
-  },
-  emptyText: {
-    fontSize: 18,
-    color: isDark ? '#666' : '#999',
-    marginTop: 16,
-    fontWeight: '500',
-  },
-  emptySubtext: {
-    fontSize: 14,
-    color: isDark ? '#555' : '#bbb',
-    marginTop: 8,
-    textAlign: 'center',
-    paddingHorizontal: 32,
-  },
-});
+    content: {
+      flex: 1,
+      marginTop: 20,
+    },
+    fab: {
+      position: 'absolute',
+      bottom: 20,
+      right: 20,
+      width: 56,
+      height: 56,
+      borderRadius: 28,
+      backgroundColor: '#c333cc',
+      justifyContent: 'center',
+      alignItems: 'center',
+      shadowColor: '#000',
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.25,
+      shadowRadius: 3.84,
+      elevation: 5,
+    },
+    emptyState: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingVertical: 64,
+    },
+    emptyText: {
+      fontSize: 18,
+      color: isDark ? '#666' : '#999',
+      marginTop: 16,
+      fontWeight: '500',
+    },
+    emptySubtext: {
+      fontSize: 14,
+      color: isDark ? '#555' : '#bbb',
+      marginTop: 8,
+      textAlign: 'center',
+      paddingHorizontal: 32,
+    },
+  });
 
 export default TodosScreen;

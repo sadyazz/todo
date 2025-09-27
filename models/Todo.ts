@@ -1,5 +1,10 @@
 import { Model } from '@nozbe/watermelondb';
-import { field, date, relation, children } from '@nozbe/watermelondb/decorators';
+import {
+  field,
+  date,
+  relation,
+  children,
+} from '@nozbe/watermelondb/decorators';
 
 export class Todo extends Model {
   static table = 'todos';
