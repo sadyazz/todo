@@ -12,7 +12,9 @@ const TodayScreen: React.FC = () => {
   const [todos, setTodos] = useState<TodoData[]>([]);
   const database = useDatabase();
 
-  const todosQuery = database.get('todos').query(Q.sortBy('created_at', Q.desc));
+  const todosQuery = database
+    .get('todos')
+    .query(Q.sortBy('created_at', Q.desc));
   const todosFromDB = todosQuery.observe();
 
   useEffect(() => {
@@ -30,10 +32,10 @@ const TodayScreen: React.FC = () => {
         updatedAt: todo.updatedAt,
       }));
 
-      const todayTodos = todoData.filter(todo => 
-        todo.dueDate && isToday(todo.dueDate)
+      const todayTodos = todoData.filter(
+        todo => todo.dueDate && isToday(todo.dueDate)
       );
-      
+
       setTodos(todayTodos);
     });
     return () => subscription.unsubscribe();

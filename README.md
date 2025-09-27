@@ -26,6 +26,7 @@ a simple React Native todo application with offline storage and push notificatio
 - **Linting**: ESLint for code quality (`yarn lint`)
 - **Formatting**: Prettier for consistent style (`yarn format`)
 - **Testing**: Jest for unit tests (`yarn test`)
+- **CI/CD**: GitHub Actions automatically checks code quality and runs tests on every push/PR
 
 ## Getting Started
 
@@ -70,3 +71,35 @@ npx expo run:ios
 ```bash
 npx expo run:android
 ```
+
+## Contributing
+
+1. **Open an issue** to discuss your idea first
+2. **Fork the repository** if you want to contribute
+3. **Clone your fork** locally:
+   ```bash
+   git clone https://github.com/sadyazz/todo.git
+   cd todo
+   ```
+4. **Install dependencies**:
+   ```bash
+   yarn install
+   ```
+5. **Create a feature branch**:
+   ```bash
+   git checkout -b feature/your-feature-name
+   ```
+6. **Make your changes** and ensure they work:
+   ```bash
+   yarn test        # Run tests
+   yarn lint        # Check code quality
+   yarn format      # Format code
+   ```
+7. **Create a Pull Request** with a clear description
+
+### Code Quality Requirements
+
+- **ESLint**: Code must pass linting (`yarn lint`)
+- **Prettier**: Code must be formatted (`yarn format`)
+- **Tests**: All tests must pass (`yarn test`)
+- **TypeScript**: No type errors
