@@ -98,7 +98,7 @@ const AddTodoScreen: React.FC<AddTodoScreenProps> = ({ onBack, onSave, editTodo 
                 category.updatedAt = new Date();
             });
 
-            // Database subscription will automatically update the categories list
+
             setCategoryId(newCategory.id);
             setNewCategoryName('');
             setShowAddCategory(false);
@@ -127,6 +127,20 @@ const AddTodoScreen: React.FC<AddTodoScreenProps> = ({ onBack, onSave, editTodo 
   const handleDateChange = (_event: any, selectedDate?: Date) => {
     setShowDatePicker(Platform.OS === 'ios');
     if (selectedDate) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const selectedDateOnly = new Date(selectedDate);
+      selectedDateOnly.setHours(0, 0, 0, 0);
+      
+      if (selectedDateOnly < today) {
+        Alert.alert(
+          'Invalid Date',
+          'Due date cannot be set in the past. Please select today or a future date.',
+          [{ text: 'OK' }]
+        );
+        return;
+      }
+      
       setDueDate(selectedDate);
     }
   };
@@ -206,13 +220,16 @@ const AddTodoScreen: React.FC<AddTodoScreenProps> = ({ onBack, onSave, editTodo 
           </View>
           {showDatePicker && (
             <View style={styles.datePickerContainer}>
-              <DateTimePicker
-                value={dueDate || new Date()}
-                mode="date"
-                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                onChange={handleDateChange}
-                minimumDate={new Date()}
-              />
+              <View style={styles.datePickerWrapper}>
+                <DateTimePicker
+                  value={dueDate || new Date()}
+                  mode="date"
+                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                  onChange={handleDateChange}
+                  textColor={isDark ? '#fff' : '#000'}
+                  themeVariant={isDark ? 'dark' : 'light'}
+                />
+              </View>
               {Platform.OS === 'ios' && (
                 <View style={styles.datePickerActions}>
                   <TouchableOpacity 
@@ -450,6 +467,12 @@ const createStyles = (isDark: boolean) => StyleSheet.create({
     backgroundColor: isDark ? '#2a2a2a' : '#f9f9f9',
     borderRadius: 8,
     padding: 8,
+  },
+  datePickerWrapper: {
+    backgroundColor: isDark ? '#1a1a1a' : '#fff',
+    borderRadius: 8,
+    padding: 8,
+    marginBottom: 8,
   },
   datePickerActions: {
     flexDirection: 'row',

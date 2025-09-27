@@ -27,6 +27,42 @@ const TodoList = ({todos, onTodoPress, onToggleComplete}: TodoListProps) => {
         }
     };
 
+    const formatDueDate = (date: Date): string => {
+        const today = new Date();
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        
+        const isToday = date.toDateString() === today.toDateString();
+        const isTomorrow = date.toDateString() === tomorrow.toDateString();
+        const isOverdue = date < today && !isToday;
+        
+        if (isOverdue) {
+            return 'Overdue';
+        } else if (isToday) {
+            return 'Today';
+        } else if (isTomorrow) {
+            return 'Tomorrow';
+        } else {
+            return date.toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric'
+            });
+        }
+    };
+
+    const getDueDateColor = (date: Date, isDark: boolean): string => {
+        const today = new Date();
+        const isOverdue = date < today && date.toDateString() !== today.toDateString();
+        
+        if (isOverdue) {
+            return '#F44336';
+        } else if (date.toDateString() === today.toDateString()) {
+            return '#FF9800';
+        } else {
+            return isDark ? '#666' : '#999';
+        }
+    };
+
     const renderTodo = ({item}:{item:TodoData})=>{
         const priorityColor = getPriorityColor(item.priority);
         
@@ -63,6 +99,21 @@ const TodoList = ({todos, onTodoPress, onToggleComplete}: TodoListProps) => {
                                 ]}>
                                     {item.description}
                                 </Text>
+                            )}
+                            {item.dueDate && (
+                                <View style={styles.dueDateContainer}>
+                                    <Ionicons 
+                                        name="calendar-outline" 
+                                        size={12} 
+                                        color={getDueDateColor(item.dueDate, isDark)} 
+                                    />
+                                    <Text style={[
+                                        styles.dueDateText,
+                                        { color: getDueDateColor(item.dueDate, isDark) }
+                                    ]}>
+                                        {formatDueDate(item.dueDate)}
+                                    </Text>
+                                </View>
                             )}
                         </View>
                         <View style={[styles.priorityIndicator, { backgroundColor: priorityColor }]} />
@@ -128,6 +179,16 @@ const createStyles = (isDark: boolean) => StyleSheet.create({
     completedTodoDescription: {
         textDecorationLine: 'line-through',
         color: isDark ? '#555' : '#bbb',
+    },
+    dueDateContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginTop: 4,
+    },
+    dueDateText: {
+        fontSize: 12,
+        marginLeft: 4,
+        fontWeight: '500',
     },
 })
 export default TodoList
