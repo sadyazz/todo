@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Alert } from 'react-native';
+import { View, StyleSheet, Alert, Text } from 'react-native';
 import TabButtons, { TabButtonType } from '../components/TabButtons';
 import TodoList from '../components/TodoList';
 import { TouchableOpacity } from 'react-native';
@@ -192,17 +192,41 @@ const TodosScreen: React.FC = () => {
       />
       <View style={styles.content}>
         {selectedTab === TodoTab.NotFinished ? (
-          <TodoList 
-            todos={todos.filter(todo => !todo.isCompleted)} 
-            onTodoPress={handleTodoPress}
-            onToggleComplete={handleToggleComplete}
-          />
+          todos.filter(todo => !todo.isCompleted).length > 0 ? (
+            <TodoList 
+              todos={todos.filter(todo => !todo.isCompleted)} 
+              onTodoPress={handleTodoPress}
+              onToggleComplete={handleToggleComplete}
+            />
+          ) : (
+            <View style={styles.emptyState}>
+              <Ionicons 
+                name="checkmark-circle-outline" 
+                size={64} 
+                color={isDark ? "#666" : "#999"} 
+              />
+              <Text style={styles.emptyText}>No pending todos</Text>
+              <Text style={styles.emptySubtext}>Tap the + button to add your first todo</Text>
+            </View>
+          )
         ) : (
-          <TodoList 
-            todos={todos.filter(todo => todo.isCompleted)} 
-            onTodoPress={handleTodoPress}
-            onToggleComplete={handleToggleComplete}
-          />
+          todos.filter(todo => todo.isCompleted).length > 0 ? (
+            <TodoList 
+              todos={todos.filter(todo => todo.isCompleted)} 
+              onTodoPress={handleTodoPress}
+              onToggleComplete={handleToggleComplete}
+            />
+          ) : (
+            <View style={styles.emptyState}>
+              <Ionicons 
+                name="trophy-outline" 
+                size={64} 
+                color={isDark ? "#666" : "#999"} 
+              />
+              <Text style={styles.emptyText}>No completed todos yet</Text>
+              <Text style={styles.emptySubtext}>Complete some todos to see them here</Text>
+            </View>
+          )
         )}
       </View>
       <TouchableOpacity
@@ -243,6 +267,25 @@ const createStyles = (isDark: boolean) => StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
+  },
+  emptyState: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 64,
+  },
+  emptyText: {
+    fontSize: 18,
+    color: isDark ? '#666' : '#999',
+    marginTop: 16,
+    fontWeight: '500',
+  },
+  emptySubtext: {
+    fontSize: 14,
+    color: isDark ? '#555' : '#bbb',
+    marginTop: 8,
+    textAlign: 'center',
+    paddingHorizontal: 32,
   },
 });
 
