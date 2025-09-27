@@ -1,8 +1,10 @@
 import React from 'react'
 import { Text, StyleSheet, FlatList, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { TodoData, Priority } from '../types';
+import { TodoData, Priority, CategoryData } from '../types';
 import { useTheme } from '../contexts/ThemeContext';
+import { useDatabase } from '@nozbe/watermelondb/react';
+import { Q } from '@nozbe/watermelondb';
 
 interface TodoListProps{
     todos: TodoData[];
@@ -12,7 +14,25 @@ interface TodoListProps{
 
 const TodoList = ({todos, onTodoPress, onToggleComplete}: TodoListProps) => {
     const { isDark } = useTheme();
+    const database = useDatabase();
     const styles = createStyles(isDark);
+    
+    const categoriesQuery = database.get('categories').query(Q.sortBy('created_at', Q.desc));
+    const categoriesFromDB = categoriesQuery.observe();
+    
+    const [categories, setCategories] = React.useState<CategoryData[]>([]);
+    
+    React.useEffect(() => {
+        const subscription = categoriesFromDB.subscribe((categoriesFromDatabase) => {
+            const categoryData: CategoryData[] = categoriesFromDatabase.map((category: any) => ({
+                id: category.id,
+                name: category.name,
+                color: category.color,
+            }));
+            setCategories(categoryData);
+        });
+        return () => subscription.unsubscribe();
+    }, []);
     
     const getPriorityColor = (priority: Priority): string => {
         switch (priority) {
@@ -25,6 +45,11 @@ const TodoList = ({todos, onTodoPress, onToggleComplete}: TodoListProps) => {
             default:
                 return '#e0e0e0';
         }
+    };
+
+    const getCategoryColor = (categoryId: string): string => {
+        const category = categories.find(cat => cat.id === categoryId);
+        return category?.color || '#c333cc';
     };
 
     const formatDueDate = (date: Date): string => {
@@ -50,6 +75,16 @@ const TodoList = ({todos, onTodoPress, onToggleComplete}: TodoListProps) => {
         }
     };
 
+    const formatReminderTime = (date: Date): string => {
+        return date.toLocaleString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true,
+        });
+    };
+
     const getDueDateColor = (date: Date, isDark: boolean): string => {
         const today = new Date();
         const isOverdue = date < today && date.toDateString() !== today.toDateString();
@@ -63,10 +98,11 @@ const TodoList = ({todos, onTodoPress, onToggleComplete}: TodoListProps) => {
         }
     };
 
-    const renderTodo = ({item}:{item:TodoData})=>{
-        const priorityColor = getPriorityColor(item.priority);
-        
-        return (
+            const renderTodo = ({item}:{item:TodoData})=>{
+                const priorityColor = getPriorityColor(item.priority);
+                const categoryColor = getCategoryColor(item.categoryId);
+                
+                return (
                 <TouchableOpacity 
                     style={[
                         styles.todoItem,
@@ -100,23 +136,38 @@ const TodoList = ({todos, onTodoPress, onToggleComplete}: TodoListProps) => {
                                     {item.description}
                                 </Text>
                             )}
-                            {item.dueDate && (
-                                <View style={styles.dueDateContainer}>
-                                    <Ionicons 
-                                        name="calendar-outline" 
-                                        size={12} 
-                                        color={getDueDateColor(item.dueDate, isDark)} 
-                                    />
-                                    <Text style={[
-                                        styles.dueDateText,
-                                        { color: getDueDateColor(item.dueDate, isDark) }
-                                    ]}>
-                                        {formatDueDate(item.dueDate)}
-                                    </Text>
-                                </View>
-                            )}
+                        {item.dueDate && (
+                            <View style={styles.dueDateContainer}>
+                                <Ionicons 
+                                    name="calendar-outline" 
+                                    size={12} 
+                                    color={getDueDateColor(item.dueDate, isDark)} 
+                                />
+                                <Text style={[
+                                    styles.dueDateText,
+                                    { color: getDueDateColor(item.dueDate, isDark) }
+                                ]}>
+                                    {formatDueDate(item.dueDate)}
+                                </Text>
+                            </View>
+                        )}
+                        {item.reminderDate && (
+                            <View style={styles.dueDateContainer}>
+                                <Ionicons 
+                                    name="alarm-outline" 
+                                    size={12} 
+                                    color={isDark ? "#c333cc" : "#c333cc"} 
+                                />
+                                <Text style={[
+                                    styles.dueDateText,
+                                    { color: isDark ? "#c333cc" : "#c333cc" }
+                                ]}>
+                                    Reminder: {formatReminderTime(item.reminderDate)}
+                                </Text>
+                            </View>
+                        )}
                         </View>
-                        <View style={[styles.priorityIndicator, { backgroundColor: priorityColor }]} />
+                        <View style={[styles.priorityIndicator, { backgroundColor: categoryColor }]} />
                     </View>
                 </TouchableOpacity>
             )

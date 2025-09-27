@@ -21,6 +21,7 @@ export const schema = appSchema({
         { name: 'due_date', type: 'number', isOptional: true },
         { name: 'priority', type: 'string' },
         { name: 'category_id', type: 'string', isIndexed: true },
+        { name: 'reminder_date', type: 'number', isOptional: true },
         { name: 'created_at', type: 'number' },
         { name: 'updated_at', type: 'number' },
       ],

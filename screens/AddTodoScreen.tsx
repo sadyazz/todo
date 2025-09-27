@@ -6,6 +6,7 @@ import { Q } from '@nozbe/watermelondb';
 import { CategoryData, CreateTodoData, TodoData, Priority, PriorityOption, CategoryColor, ReminderData } from '../types';
 import { useTheme } from '../contexts/ThemeContext';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { NotificationService } from '../services/NotificationService';
 
 interface AddTodoScreenProps {
   onBack: () => void;
@@ -71,7 +72,8 @@ const AddTodoScreen: React.FC<AddTodoScreenProps> = ({ onBack, onSave, editTodo 
       description: description.trim(),
       dueDate,
       priority,
-      categoryId
+      categoryId,
+      reminderDate
     });
     onBack();
   };
@@ -194,9 +196,9 @@ const AddTodoScreen: React.FC<AddTodoScreenProps> = ({ onBack, onSave, editTodo 
     if (!reminderDate) return false;
     const now = new Date();
     const expectedTime = new Date(now.getTime() + minutes * 60000);
-    // Check if reminder is within 1 minute of expected quick reminder time
+
     const diff = Math.abs(reminderDate.getTime() - expectedTime.getTime());
-    return diff < 60000; // Within 1 minute
+    return diff < 60000;
   };
 
   const quickReminderOptions = [

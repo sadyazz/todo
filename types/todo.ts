@@ -6,6 +6,7 @@ export interface TodoData {
   dueDate?: Date;
   priority: Priority;
   categoryId: string;
+  reminderDate?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -16,6 +17,7 @@ export interface CreateTodoData {
   dueDate?: Date;
   priority: Priority;
   categoryId: string;
+  reminderDate?: Date;
 }
 
 export type Priority = 'low' | 'medium' | 'high';
