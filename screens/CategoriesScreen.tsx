@@ -17,6 +17,7 @@ const CategoriesScreen: React.FC<CategoriesScreenProps> = ({ onBack }) => {
   const [editName, setEditName] = useState('');
   const [editColor, setEditColor] = useState<CategoryColor>('#c333cc');
   const [showEditModal, setShowEditModal] = useState(false);
+  const [isAddingNew, setIsAddingNew] = useState(false);
   const database = useDatabase();
 
   const categoriesQuery = database.get('categories').query(Q.sortBy('created_at', Q.desc));
@@ -44,6 +45,15 @@ const CategoriesScreen: React.FC<CategoriesScreenProps> = ({ onBack }) => {
     setEditingCategory(category);
     setEditName(category.name);
     setEditColor(category.color as CategoryColor);
+    setIsAddingNew(false);
+    setShowEditModal(true);
+  };
+
+  const handleAddNewCategory = () => {
+    setEditingCategory(null);
+    setEditName('');
+    setEditColor('#c333cc');
+    setIsAddingNew(true);
     setShowEditModal(true);
   };
 
@@ -53,26 +63,34 @@ const CategoriesScreen: React.FC<CategoriesScreenProps> = ({ onBack }) => {
       return;
     }
 
-    if (!editingCategory) return;
-
     try {
       await database.write(async () => {
-        const category = await database.get('categories').find(editingCategory.id);
-        await category.update((categoryRecord: any) => {
-          categoryRecord.name = editName.trim();
-          categoryRecord.color = editColor;
-          categoryRecord.updatedAt = new Date();
-        });
+        if (isAddingNew) {
+          await database.get('categories').create((category: any) => {
+            category.name = editName.trim();
+            category.color = editColor;
+            category.createdAt = new Date();
+            category.updatedAt = new Date();
+          });
+        } else if (editingCategory) {
+          const category = await database.get('categories').find(editingCategory.id);
+          await category.update((categoryRecord: any) => {
+            categoryRecord.name = editName.trim();
+            categoryRecord.color = editColor;
+            categoryRecord.updatedAt = new Date();
+          });
+        }
       });
 
       setTimeout(() => refreshCategories(), 100);
       
       setShowEditModal(false);
       setEditingCategory(null);
+      setIsAddingNew(false);
       setEditName('');
     } catch (error) {
-      console.error('Error updating category:', error);
-      Alert.alert('Error', 'Failed to update category');
+      console.error('Error saving category:', error);
+      Alert.alert('Error', 'Failed to save category');
     }
   };
 
@@ -128,7 +146,9 @@ const CategoriesScreen: React.FC<CategoriesScreenProps> = ({ onBack }) => {
           <Ionicons name="arrow-back" size={24} color={isDark ? "#fff" : "#333"} />
         </TouchableOpacity>
         <Text style={styles.title}>Categories</Text>
-        <View style={styles.placeholder} />
+        <TouchableOpacity onPress={handleAddNewCategory} style={styles.addButton}>
+          <Ionicons name="add" size={24} color="#c333cc" />
+        </TouchableOpacity>
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
@@ -177,7 +197,7 @@ const CategoriesScreen: React.FC<CategoriesScreenProps> = ({ onBack }) => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Edit Category</Text>
+              <Text style={styles.modalTitle}>{isAddingNew ? 'Add New Category' : 'Edit Category'}</Text>
               <TouchableOpacity onPress={() => setShowEditModal(false)}>
                 <Ionicons name="close" size={24} color={isDark ? "#fff" : "#333"} />
               </TouchableOpacity>
@@ -253,8 +273,8 @@ const createStyles = (isDark: boolean) => StyleSheet.create({
     fontWeight: 'bold',
     color: isDark ? '#fff' : '#333',
   },
-  placeholder: {
-    width: 40,
+  addButton: {
+    padding: 8,
   },
   content: {
     flex: 1,
