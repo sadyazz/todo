@@ -21,6 +21,12 @@ a simple React Native todo application with offline storage and push notificatio
 - Expo Notifications for push notifications
 - SQLite database
 
+## Development Tools
+
+- **Linting**: ESLint for code quality (`yarn lint`)
+- **Formatting**: Prettier for consistent style (`yarn format`)
+- **Testing**: Jest for unit tests (`yarn test`)
+
 ## Getting Started
 
 ### Prerequisites

@@ -11,6 +11,7 @@ import { TodoData, Priority, CategoryData } from '../types';
 import { useTheme } from '../contexts/ThemeContext';
 import { useDatabase } from '@nozbe/watermelondb/react';
 import { Q } from '@nozbe/watermelondb';
+import { formatDate, isOverdue } from '../utils/dateUtils';
 
 interface TodoListProps {
   todos: TodoData[];
@@ -69,19 +70,16 @@ const TodoList = ({ todos, onTodoPress, onToggleComplete }: TodoListProps) => {
 
     const isToday = date.toDateString() === today.toDateString();
     const isTomorrow = date.toDateString() === tomorrow.toDateString();
-    const isOverdue = date < today && !isToday;
+    const isOverdueDate = isOverdue(date);
 
-    if (isOverdue) {
+    if (isOverdueDate) {
       return 'Overdue';
     } else if (isToday) {
       return 'Today';
     } else if (isTomorrow) {
       return 'Tomorrow';
     } else {
-      return date.toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-      });
+      return formatDate(date);
     }
   };
 
@@ -96,13 +94,9 @@ const TodoList = ({ todos, onTodoPress, onToggleComplete }: TodoListProps) => {
   };
 
   const getDueDateColor = (date: Date, isDark: boolean): string => {
-    const today = new Date();
-    const isOverdue =
-      date < today && date.toDateString() !== today.toDateString();
-
-    if (isOverdue) {
+    if (isOverdue(date)) {
       return '#F44336';
-    } else if (date.toDateString() === today.toDateString()) {
+    } else if (date.toDateString() === new Date().toDateString()) {
       return '#FF9800';
     } else {
       return isDark ? '#666' : '#999';

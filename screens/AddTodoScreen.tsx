@@ -20,11 +20,9 @@ import {
   Priority,
   PriorityOption,
   CategoryColor,
-  ReminderData,
 } from '../types';
 import { useTheme } from '../contexts/ThemeContext';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { NotificationService } from '../services/NotificationService';
 
 interface AddTodoScreenProps {
   onBack: () => void;

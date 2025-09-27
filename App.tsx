@@ -1,10 +1,11 @@
-import { SafeAreaView, StyleSheet, View, Text } from 'react-native';
+import { SafeAreaView, StyleSheet, View } from 'react-native';
 import React, { useState } from 'react';
 import { DatabaseProvider } from './providers/DatabaseProvider';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import BottomNavigation from './components/BottomNavigation';
 import TodosScreen from './screens/TodoScreen';
 import SettingsScreen from './screens/SettingsScreen';
+import TodayScreen from './screens/TodayScreen';
 
 export enum MainTab {
   Today,
@@ -19,24 +20,13 @@ const AppContent: React.FC = () => {
   const renderScreen = () => {
     switch (selectedTab) {
       case MainTab.Today:
-        return (
-          <View
-            style={[
-              styles.placeholder,
-              { backgroundColor: isDark ? '#1a1a1a' : '#fff' },
-            ]}
-          >
-            <Text style={{ color: isDark ? '#fff' : '#333' }}>
-              Today Screen
-            </Text>
-          </View>
-        );
+        return <TodayScreen />;
       case MainTab.Todos:
         return <TodosScreen />;
       case MainTab.Settings:
         return <SettingsScreen />;
       default:
-        return <TodosScreen />;
+        return <TodayScreen />;
     }
   };
 
