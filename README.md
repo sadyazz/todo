@@ -72,34 +72,23 @@ npx expo run:ios
 npx expo run:android
 ```
 
-## Contributing
+## Screenshots
 
-1. **Open an issue** to discuss your idea first
-2. **Fork the repository** if you want to contribute
-3. **Clone your fork** locally:
-   ```bash
-   git clone https://github.com/sadyazz/todo.git
-   cd todo
-   ```
-4. **Install dependencies**:
-   ```bash
-   yarn install
-   ```
-5. **Create a feature branch**:
-   ```bash
-   git checkout -b feature/your-feature-name
-   ```
-6. **Make your changes** and ensure they work:
-   ```bash
-   yarn test        # Run tests
-   yarn lint        # Check code quality
-   yarn format      # Format code
-   ```
-7. **Create a Pull Request** with a clear description
+<details>
+<summary></summary>
+<br/>
 
-### Code Quality Requirements
+<div align="center">
+<img src="assets/screenshots/1.png" alt="Screenshot 1" height="300px">
+<img src="assets/screenshots/2.png" alt="Screenshot 2" height="300px">
+<img src="assets/screenshots/3.png" alt="Screenshot 3" height="300px">
+<img src="assets/screenshots/4.png" alt="Screenshot 4" height="300px">
+<img src="assets/screenshots/5.png" alt="Screenshot 5" height="300px">
+<img src="assets/screenshots/6.1.png" alt="Screenshot 6.1" height="300px">
+<img src="assets/screenshots/6.2.png" alt="Screenshot 6.2" height="300px">
+<img src="assets/screenshots/7.png" alt="Screenshot 7" height="300px">
+<img src="assets/screenshots/8.1.png" alt="Screenshot 8.1" height="300px">
+<img src="assets/screenshots/8.2.png" alt="Screenshot 8.2" height="300px">
+</div>
 
-- **ESLint**: Code must pass linting (`yarn lint`)
-- **Prettier**: Code must be formatted (`yarn format`)
-- **Tests**: All tests must pass (`yarn test`)
-- **TypeScript**: No type errors
+</details>
